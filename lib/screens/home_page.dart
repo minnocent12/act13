@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
+import 'sign_in_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Firebase Auth Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: MyHomePage(title: 'Firebase Auth Demo'),
     );
   }
@@ -37,7 +42,12 @@ class _MyHomePageState extends State<MyHomePage> {
     await _auth.signOut();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Signed out successfully'),
+      duration: Duration(seconds: 2),
     ));
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SignInScreen()),
+    );
   }
 
   @override
@@ -47,20 +57,36 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: <Widget>[
           ElevatedButton(
-            onPressed: () {
-              _signOut();
-            },
-            child: Text('Sign Out'),
+            onPressed: _signOut,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: Text('Sign Out', style: TextStyle(fontSize: 16)),
           ),
+          SizedBox(width: 10),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RegisterEmailSection(auth: _auth),
-            EmailPasswordForm(auth: _auth),
-          ],
+      body: SingleChildScrollView(
+        // Wrapping the body in a SingleChildScrollView
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Welcome, ${_auth.currentUser?.email ?? "User"}!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              RegisterEmailSection(auth: _auth),
+              SizedBox(height: 20),
+              EmailPasswordForm(auth: _auth),
+            ],
+          ),
         ),
       ),
     );
@@ -107,11 +133,14 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
     return Form(
       key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           TextFormField(
             controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
+            decoration: InputDecoration(
+              labelText: 'Email',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.email),
+            ),
             validator: (value) {
               if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
@@ -119,9 +148,15 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
               return null;
             },
           ),
+          SizedBox(height: 10),
           TextFormField(
             controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(
+              labelText: 'Password',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.lock),
+            ),
+            obscureText: true,
             validator: (value) {
               if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
@@ -129,28 +164,27 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
               return null;
             },
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _register();
-                }
-              },
-              child: Text('Submit'),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _register();
+              }
+            },
+            child: Text('Register'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 30),
             ),
           ),
-          Container(
-            alignment: Alignment.center,
-            child: Text(
-              _initialState
-                  ? 'Please Register'
-                  : _success
-                      ? 'Successfully registered $_userEmail'
-                      : 'Registration failed',
-              style: TextStyle(color: _success ? Colors.green : Colors.red),
-            ),
+          SizedBox(height: 20),
+          Text(
+            _initialState
+                ? 'Please Register'
+                : _success
+                    ? 'Successfully registered $_userEmail'
+                    : 'Registration failed',
+            style: TextStyle(color: _success ? Colors.green : Colors.red),
           ),
         ],
       ),
@@ -198,16 +232,20 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
     return Form(
       key: _formKey,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            child: Text('Test sign in with email and password'),
-            padding: const EdgeInsets.all(16),
-            alignment: Alignment.center,
+          Text(
+            'Sign in with your email and password',
+            style: TextStyle(fontSize: 18),
+            textAlign: TextAlign.center,
           ),
+          SizedBox(height: 10),
           TextFormField(
             controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
+            decoration: InputDecoration(
+              labelText: 'Email',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.email),
+            ),
             validator: (value) {
               if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
@@ -215,9 +253,15 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
               return null;
             },
           ),
+          SizedBox(height: 10),
           TextFormField(
             controller: _passwordController,
-            decoration: InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(
+              labelText: 'Password',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.lock),
+            ),
+            obscureText: true,
             validator: (value) {
               if (value?.isEmpty ?? true) {
                 return 'Please enter some text';
@@ -225,29 +269,27 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
               return null;
             },
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _signInWithEmailAndPassword();
-                }
-              },
-              child: Text('Submit'),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _signInWithEmailAndPassword();
+              }
+            },
+            child: Text('Sign In'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 30),
             ),
           ),
-          Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              _initialState
-                  ? 'Please sign in'
-                  : _success
-                      ? 'Successfully signed in $_userEmail'
-                      : 'Sign in failed',
-              style: TextStyle(color: _success ? Colors.green : Colors.red),
-            ),
+          SizedBox(height: 20),
+          Text(
+            _initialState
+                ? 'Please sign in'
+                : _success
+                    ? 'Successfully signed in $_userEmail'
+                    : 'Sign in failed',
+            style: TextStyle(color: _success ? Colors.green : Colors.red),
           ),
         ],
       ),

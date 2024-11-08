@@ -9,18 +9,52 @@ class RegistrationScreen extends StatelessWidget {
   final AuthService authService = AuthService();
 
   void _register(BuildContext context) async {
-    final user = await authService.registerWithEmailAndPassword(
-      emailController.text,
-      passwordController.text,
-    );
-    if (user != null) {
-      Navigator.pushReplacementNamed(context, '/home');
+    final email = emailController.text;
+    final password = passwordController.text;
+
+    // Check if email is valid
+    if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$")
+        .hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid email address')),
+      );
+      return;
+    }
+
+    // Check if password is less than 6 characters
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
+    // Register logic
+    try {
+      final user =
+          await authService.registerWithEmailAndPassword(email, password);
+      if (user != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred, please try again')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+                context, '/'); // Ensure this route is correct
+          },
+        ),
+      ),
       body: Stack(
         children: [
           Container(
